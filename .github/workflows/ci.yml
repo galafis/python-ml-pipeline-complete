@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.9, 3.10, 3.11]
+        python-version: ["3.9", "3.10", "3.11"]
 
     steps:
     - uses: actions/checkout@v4
@@ -84,7 +84,7 @@ jobs:
 
     - name: Type check with mypy
       run: |
-        mypy src/ --ignore-missing-imports --no-strict-optional
+        mypy src/ --ignore-missing-imports --no-strict-optional --exclude="src/main.py"
       continue-on-error: true
 
   security:

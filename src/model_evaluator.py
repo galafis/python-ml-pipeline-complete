@@ -16,7 +16,6 @@ from sklearn.metrics import (
 )
 from sklearn.model_selection import cross_val_score
 from typing import Dict, Any, Optional
-import warnings
 
 
 class ModelEvaluator:
@@ -25,7 +24,6 @@ class ModelEvaluator:
     def __init__(self, estimator: BaseEstimator):
         """
         Inicializa o ModelEvaluator com um estimator scikit-learn.
-
         Args:
             estimator (BaseEstimator): Estimador (modelo) do scikit-learn treinado.
         """
@@ -36,17 +34,14 @@ class ModelEvaluator:
     def _detect_model_type(self, y_true: np.ndarray) -> str:
         """
         Detecta automaticamente se o modelo é de classificação ou regressão.
-
         Args:
             y_true (np.ndarray): Valores verdadeiros do target.
-
         Returns:
             str: 'classification' ou 'regression'.
         """
         # Verifica se o estimador tem método predict_proba (classificação)
         if hasattr(self.estimator, "predict_proba"):
             return "classification"
-
         # Verifica se y_true contém apenas valores inteiros e poucos valores únicos
         unique_values = np.unique(y_true)
         if (
@@ -55,22 +50,20 @@ class ModelEvaluator:
             and np.all(unique_values >= 0)
         ):
             return "classification"
-
         # Caso contrário, assume regressão
         return "regression"
 
     def _evaluate_classification(self, X: np.ndarray, y_true: np.ndarray) -> Dict[str, float]:
         """
         Avalia modelo de classificação.
-
         Args:
             X (np.ndarray): Features de entrada.
             y_true (np.ndarray): Target verdadeiro.
-
         Returns:
             Dict[str, float]: Dicionário com métricas de classificação.
         """
         y_pred = self.estimator.predict(X)
+
         metrics = {
             "accuracy": accuracy_score(y_true, y_pred),
             "precision": precision_score(
@@ -97,32 +90,30 @@ class ModelEvaluator:
     def _evaluate_regression(self, X: np.ndarray, y_true: np.ndarray) -> Dict[str, float]:
         """
         Avalia modelo de regressão.
-
         Args:
             X (np.ndarray): Features de entrada.
             y_true (np.ndarray): Target verdadeiro.
-
         Returns:
             Dict[str, float]: Dicionário com métricas de regressão.
         """
         y_pred = self.estimator.predict(X)
         mse = mean_squared_error(y_true, y_pred)
+
         metrics = {
             "mse": mse,
             "rmse": np.sqrt(mse),
             "mae": mean_absolute_error(y_true, y_pred),
             "r2": r2_score(y_true, y_pred),
         }
+
         return metrics
 
     def evaluate(self, X: np.ndarray, y_true: np.ndarray) -> Dict[str, float]:
         """
         Avalia o modelo automaticamente detectando o tipo (classificação/regressão).
-
         Args:
             X (np.ndarray): Features de entrada.
             y_true (np.ndarray): Target verdadeiro.
-
         Returns:
             Dict[str, float]: Dicionário com métricas apropriadas.
         """
@@ -148,13 +139,11 @@ class ModelEvaluator:
     ) -> Dict[str, Any]:
         """
         Realiza validação cruzada do modelo.
-
         Args:
             X (np.ndarray): Features de entrada.
             y (np.ndarray): Target.
             cv (int): Número de folds para validação cruzada.
             scoring (Optional[str]): Métrica para scoring. Se None, usa padrão do tipo.
-
         Returns:
             Dict[str, Any]: Resultados da validação cruzada.
         """
@@ -179,11 +168,9 @@ class ModelEvaluator:
     def generate_report(self, X: np.ndarray, y_true: np.ndarray) -> str:
         """
         Gera relatório completo de avaliação do modelo.
-
         Args:
             X (np.ndarray): Features de entrada.
             y_true (np.ndarray): Target verdadeiro.
-
         Returns:
             str: Relatório formatado.
         """
@@ -204,8 +191,10 @@ Tamanho do Dataset: {len(y_true)} amostras
 - Precision: {metrics['precision']:.4f}
 - Recall: {metrics['recall']:.4f}
 - F1-Score: {metrics['f1']:.4f}"""
+
             if "roc_auc" in metrics:
                 report += f"\n- ROC AUC: {metrics['roc_auc']:.4f}"
+
         else:  # regressão
             report += f"""MÉTRICAS DE REGRESSÃO:
 - MSE: {metrics['mse']:.4f}
@@ -219,7 +208,6 @@ Tamanho do Dataset: {len(y_true)} amostras
     def __str__(self) -> str:
         """
         Representação string customizada da classe.
-
         Returns:
             str: Representação formatada.
         """

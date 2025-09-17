@@ -1,12 +1,9 @@
-"""
-model_trainer.py
+"""model_trainer.py
 ----------------
 Módulo de treinamento e serialização de modelos ML.
 """
-
 import joblib
 from sklearn.base import BaseEstimator
-from typing import Any, Optional
 
 
 class ModelTrainer:
@@ -70,6 +67,7 @@ if __name__ == '__main__':
 
     X = np.random.rand(10, 2)
     y = (X[:, 0] + X[:, 1] > 1).astype(int)
+
     trainer = ModelTrainer(LogisticRegression())
     trainer.fit(X, y)
     print('Score:', trainer.score(X, y))

@@ -12,6 +12,7 @@ from sklearn.base import BaseEstimator, TransformerMixin
 class FeatureEngineer(BaseEstimator, TransformerMixin):
     """
     Classe para engenharia de features e transformação dos dados.
+
     Implementa métodos padronizados para detecção automática de tipos de colunas,
     aplicação de transformações apropriadas (one-hot encoding para categóricas,
     standardização para numéricas) seguindo boas práticas do scikit-learn.
@@ -67,12 +68,11 @@ class FeatureEngineer(BaseEstimator, TransformerMixin):
         """
         categorical_cols = []
         for col in X.columns:
-            if X[col].dtype in ['object', 'category', 'bool', 'string']:
+            if X[col].dtype in ["object", "category", "bool", "string"]:
                 categorical_cols.append(col)
-            elif X[col].dtype in ['int64', 'float64'] and X[col].nunique() <= 10:
+            elif X[col].dtype in ["int64", "float64"] and X[col].nunique() <= 10:
                 # Considera colunas numéricas com poucos valores únicos como categóricas
                 categorical_cols.append(col)
-
         return categorical_cols
 
     def _detect_numerical_columns(self, X):
@@ -90,14 +90,12 @@ class FeatureEngineer(BaseEstimator, TransformerMixin):
         """
         numerical_cols = []
         categorical_cols = self._detect_categorical_columns(X)
-
         for col in X.columns:
             if (
-                X[col].dtype in ['int64', 'float64', 'int32', 'float32']
+                X[col].dtype in ["int64", "float64", "int32", "float32"]
                 and col not in categorical_cols
             ):
                 numerical_cols.append(col)
-
         return numerical_cols
 
     def fit(self, X, y=None):
@@ -123,27 +121,26 @@ class FeatureEngineer(BaseEstimator, TransformerMixin):
 
         if self.numerical_features:
             transformers.append((
-                'num',
+                "num",
                 StandardScaler(),
-                self.numerical_features
+                self.numerical_features,
             ))
 
         if self.categorical_features:
             transformers.append((
-                'cat',
+                "cat",
                 OneHotEncoder(
-                    drop='first',
+                    drop="first",
                     sparse_output=False,
-                    handle_unknown='ignore'
+                    handle_unknown="ignore",
                 ),
-                self.categorical_features
+                self.categorical_features,
             ))
 
         # Configurar o preprocessador
         if transformers:
             self.preprocessor = ColumnTransformer(
-                transformers=transformers,
-                remainder='passthrough'
+                transformers=transformers, remainder="passthrough"
             )
             # Ajustar o preprocessador
             self.preprocessor.fit(X)
@@ -176,7 +173,7 @@ class FeatureEngineer(BaseEstimator, TransformerMixin):
 
         if self.preprocessor is None:
             # Caso não haja transformadores (dataset vazio ou sem features válidas)
-            return X.values if hasattr(X, 'values') else X
+            return X.values if hasattr(X, "values") else X
 
         return self.preprocessor.transform(X)
 
@@ -224,11 +221,11 @@ class FeatureEngineer(BaseEstimator, TransformerMixin):
 if __name__ == "__main__":
     # Criar dados de exemplo
     sample_data = pd.DataFrame({
-        'age': [25, 30, 35, 40, 28],
-        'salary': [50000, 60000, 70000, 80000, 55000],
-        'department': ['IT', 'HR', 'IT', 'Finance', 'IT'],
-        'experience': ['Junior', 'Senior', 'Mid', 'Senior', 'Junior'],
-        'years_employed': [2, 5, 8, 12, 3]
+        "age": [25, 30, 35, 40, 28],
+        "salary": [50000, 60000, 70000, 80000, 55000],
+        "department": ["IT", "HR", "IT", "Finance", "IT"],
+        "experience": ["Junior", "Senior", "Mid", "Senior", "Junior"],
+        "years_employed": [2, 5, 8, 12, 3],
     })
 
     print("Dados originais:")

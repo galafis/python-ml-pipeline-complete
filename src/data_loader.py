@@ -3,6 +3,7 @@ data_loader.py
 --------------
 Componente de carregamento de dados do pipeline ML.
 """
+
 import pandas as pd
 
 

@@ -2,6 +2,7 @@
 FastAPI Application for ML Model Serving
 RESTful API for model predictions and information
 """
+
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import numpy as np
@@ -10,7 +11,6 @@ import os
 from typing import List, Any
 import logging
 
-
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 app = FastAPI(
     title="ML Pipeline API",
     description="RESTful API for machine learning model predictions",
-    version="1.0.0"
+    version="1.0.0",
 )
 
 # Global variables for model components
@@ -27,24 +27,27 @@ model_components = None
 
 class PredictionRequest(BaseModel):
     """Schema for prediction input data"""
+
     data: List[List[float]]  # Assume tabular matrix input
 
 
 class PredictionResponse(BaseModel):
     """Schema for prediction response"""
+
     prediction: List[Any]
     status: str = "success"
 
 
 class ModelInfo(BaseModel):
     """Schema for model information"""
+
     model_loaded: bool
     model_type: str = "unknown"
     version: str
 
 
 # Model loading configuration
-MODEL_PATH = os.getenv('MODEL_PATH', 'modelo.joblib')
+MODEL_PATH = os.getenv("MODEL_PATH", "modelo.joblib")
 
 
 def load_model():
@@ -86,7 +89,7 @@ async def get_model_info():
     return ModelInfo(
         model_loaded=model_components is not None,
         model_type=type(model_components).__name__ if model_components else "none",
-        version="1.0.0"
+        version="1.0.0",
     )
 
 
@@ -94,13 +97,10 @@ async def get_model_info():
 async def predict(request: PredictionRequest):
     """
     Receive data and return prediction from trained model.
-
     Args:
         request: PredictionRequest containing input data matrix
-
     Returns:
         PredictionResponse with predictions
-
     Raises:
         HTTPException: If model is not available or prediction fails
     """
@@ -108,7 +108,7 @@ async def predict(request: PredictionRequest):
     if model_components is None:
         raise HTTPException(
             status_code=500,
-            detail="Model not available - check server logs for loading errors"
+            detail="Model not available - check server logs for loading errors",
         )
 
     try:
@@ -128,24 +128,21 @@ async def predict(request: PredictionRequest):
         # Convert predictions to list for JSON serialization
         pred_list = predictions.tolist()
 
-        logger.info(f"Prediction completed successfully: {len(pred_list)} predictions")
-
-        return PredictionResponse(
-            prediction=pred_list,
-            status="success"
+        logger.info(
+            f"Prediction completed successfully: {len(pred_list)} predictions"
         )
+
+        return PredictionResponse(prediction=pred_list, status="success")
 
     except ValueError as ve:
         logger.error(f"Validation error: {ve}")
         raise HTTPException(
-            status_code=400,
-            detail=f"Invalid input data: {str(ve)}"
+            status_code=400, detail=f"Invalid input data: {str(ve)}"
         )
     except Exception as exc:
         logger.error(f"Prediction error: {exc}")
         raise HTTPException(
-            status_code=500,
-            detail=f"Error making prediction: {str(exc)}"
+            status_code=500, detail=f"Error making prediction: {str(exc)}"
         )
 
 
@@ -171,9 +168,12 @@ async def reload_model():
             return {"message": "Model reload failed", "status": "error"}
     except Exception as e:
         logger.error(f"Error reloading model: {e}")
-        raise HTTPException(status_code=500, detail=f"Error reloading model: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Error reloading model: {str(e)}"
+        )
 
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=8000, log_level="info")

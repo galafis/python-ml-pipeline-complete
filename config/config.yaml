@@ -1,51 +1,247 @@
+# ============================================================================
+# ML Pipeline Configuration File
+# ============================================================================
+# This file contains centralized configuration parameters for the complete
+# machine learning pipeline including data paths, model configurations,
+# logging settings, and deployment parameters.
+
+# Data Configuration
+# ============================================================================
 data:
-  train_path: "data/train.csv"
-  test_path: "data/test.csv"
+  # Input data paths
+  raw_data_path: "data/raw"
+  processed_data_path: "data/processed"
+  features_data_path: "data/features"
+  
+  # Training data files
+  train_path: "data/processed/train.csv"
+  test_path: "data/processed/test.csv"
+  validation_path: "data/processed/validation.csv"
+  
+  # Target and feature configuration
   target_column: "target"
+  feature_columns: null  # null means use all columns except target
+  categorical_columns: []  # list of categorical column names
+  numerical_columns: []   # list of numerical column names
 
+# Model Configuration
+# ============================================================================
+model:
+  # Model save paths
+  model_save_path: "models/trained"
+  model_artifacts_path: "models/artifacts"
+  
+  # Default model type for training
+  default_type: "random_forest"  # random_forest, xgboost, lightgbm
+  
+  # Model registry configuration
+  registry:
+    production_model_name: "production_model"
+    staging_model_name: "staging_model"
+    model_version: "latest"
+
+# Experiment Configuration
+# ============================================================================
+experiment:
+  # Random seed for reproducibility
+  seed: 42
+  
+  # Train-test split configuration
+  test_proportion: 0.2
+  validation_proportion: 0.1
+  stratify: true  # stratified sampling based on target
+  
+  # Cross-validation settings
+  cv_folds: 5
+  cv_scoring: "accuracy"  # accuracy, f1, roc_auc, etc.
+
+# Data Preprocessing Configuration
+# ============================================================================
 preprocessing:
+  # Missing value handling
   handle_missing: true
+  missing_strategy: "median"  # mean, median, most_frequent, constant
+  missing_fill_value: 0  # used when strategy is 'constant'
+  
+  # Outlier detection and removal
   remove_outliers: true
+  outlier_method: "iqr"  # iqr, z_score, isolation_forest
+  outlier_threshold: 1.5  # threshold for outlier detection
+  
+  # Feature scaling
   scale_features: true
-  scaling_method: "standard"  # standard, minmax, robust
-
-training:
-  test_size: 0.2
-  random_state: 42
-  cv_folds: 3
-
-models:
-  random_forest:
-    n_estimators: [100, 200]
-    max_depth: [10, 20, null]
-    min_samples_split: [2, 5]
+  scaling_method: "standard"  # standard, minmax, robust, quantile
   
-  gradient_boosting:
-    n_estimators: [100, 200]
-    learning_rate: [0.01, 0.1]
-    max_depth: [3, 5]
-  
-  svm:
-    C: [0.1, 1, 10]
-    kernel: ["rbf", "linear"]
-  
-  logistic_regression:
-    C: [0.1, 1, 10]
-    penalty: ["l1", "l2"]
-    solver: ["liblinear"]
-
-feature_engineering:
-  create_interactions: true
-  create_polynomials: false
+  # Feature engineering
+  create_polynomial_features: false
+  polynomial_degree: 2
+  create_interaction_features: false
   feature_selection: true
   max_features: 20
 
-mlflow:
-  tracking_uri: "http://localhost:5000"
-  experiment_name: "ml_pipeline_experiment"
+# Model Training Configuration
+# ============================================================================
+training:
+  # Model hyperparameters for different algorithms
+  models:
+    random_forest:
+      n_estimators: 100
+      max_depth: 10
+      min_samples_split: 2
+      min_samples_leaf: 1
+      random_state: 42
+      n_jobs: -1
+    
+    xgboost:
+      n_estimators: 100
+      max_depth: 6
+      learning_rate: 0.1
+      subsample: 0.8
+      colsample_bytree: 0.8
+      random_state: 42
+      n_jobs: -1
+    
+    lightgbm:
+      n_estimators: 100
+      max_depth: 6
+      learning_rate: 0.1
+      num_leaves: 31
+      feature_fraction: 0.8
+      bagging_fraction: 0.8
+      random_state: 42
+      n_jobs: -1
+  
+  # Hyperparameter tuning configuration
+  hyperparameter_tuning:
+    enabled: false
+    method: "optuna"  # optuna, grid_search, random_search
+    n_trials: 100  # for optuna
+    cv_folds: 3
+    scoring: "accuracy"
 
+# MLflow Configuration
+# ============================================================================
+mlflow:
+  # MLflow tracking server
+  tracking_uri: "http://localhost:5000"
+  
+  # Experiment management
+  experiment_name: "ml_pipeline_complete"
+  run_name_prefix: "run"
+  
+  # Model registry
+  model_registry:
+    enabled: true
+    staging_alias: "staging"
+    production_alias: "production"
+  
+  # Artifact logging
+  log_artifacts: true
+  log_models: true
+  log_plots: true
+
+# Logging Configuration
+# ============================================================================
+logging:
+  # Log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+  level: "INFO"
+  
+  # Log file configuration
+  log_to_file: true
+  log_file_path: "logs/pipeline.log"
+  log_file_max_size: "10MB"  # maximum size before rotation
+  log_file_backup_count: 5  # number of backup files to keep
+  
+  # Console logging
+  log_to_console: true
+  
+  # Log format
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  date_format: "%Y-%m-%d %H:%M:%S"
+  
+  # Logger configuration for different components
+  loggers:
+    data_loader: "INFO"
+    feature_engineer: "INFO"
+    model_trainer: "INFO"
+    model_evaluator: "INFO"
+    pipeline: "INFO"
+
+# API Configuration
+# ============================================================================
 api:
+  # FastAPI server configuration
   host: "0.0.0.0"
   port: 8000
   debug: false
+  reload: false  # auto-reload for development
+  
+  # API settings
+  title: "ML Pipeline API"
+  description: "API for serving ML pipeline predictions"
+  version: "1.0.0"
+  
+  # Security settings
+  cors_enabled: true
+  cors_origins: ["*"]  # allowed origins for CORS
+  
+  # Rate limiting
+  rate_limit_enabled: false
+  rate_limit_calls: 100
+  rate_limit_period: 60  # seconds
 
+# Monitoring Configuration
+# ============================================================================
+monitoring:
+  # Data drift detection
+  data_drift:
+    enabled: true
+    reference_data_path: "data/reference/reference.csv"
+    drift_threshold: 0.1
+    statistical_test: "ks"  # ks, psi, wasserstein
+  
+  # Model performance monitoring
+  performance:
+    enabled: true
+    metrics: ["accuracy", "f1_score", "precision", "recall"]
+    alert_threshold: 0.05  # performance drop threshold
+  
+  # Prediction logging
+  prediction_logging:
+    enabled: true
+    log_file_path: "logs/predictions.log"
+
+# Deployment Configuration
+# ============================================================================
+deployment:
+  # Environment settings
+  environment: "development"  # development, staging, production
+  
+  # Docker configuration
+  docker:
+    image_name: "ml-pipeline"
+    image_tag: "latest"
+    container_port: 8000
+  
+  # Kubernetes configuration
+  kubernetes:
+    namespace: "ml-pipeline"
+    replicas: 3
+    cpu_request: "500m"
+    memory_request: "1Gi"
+    cpu_limit: "1000m"
+    memory_limit: "2Gi"
+
+# Paths Configuration
+# ============================================================================
+paths:
+  # Base directories
+  project_root: "."
+  data_dir: "data"
+  models_dir: "models"
+  logs_dir: "logs"
+  reports_dir: "reports"
+  notebooks_dir: "notebooks"
+  
+  # Ensure directories exist
+  create_dirs_if_not_exist: true

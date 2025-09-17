@@ -1,110 +1,66 @@
 """
-Model Training Module
-Handles model training and hyperparameter optimization
+model_trainer.py
+----------------
+Módulo de treinamento e serialização de modelos ML.
 """
 
-import numpy as np
-from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
-from sklearn.svm import SVC
-from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import GridSearchCV, cross_val_score
-import mlflow
-import mlflow.sklearn
 import joblib
-import logging
-
-logger = logging.getLogger(__name__)
+from sklearn.base import BaseEstimator
+from typing import Any, Optional
 
 class ModelTrainer:
-    def __init__(self):
-        self.models = {
-            'random_forest': RandomForestClassifier(random_state=42),
-            'gradient_boosting': GradientBoostingClassifier(random_state=42),
-            'svm': SVC(random_state=42, probability=True),
-            'logistic_regression': LogisticRegression(random_state=42, max_iter=1000)
-        }
-        
-    def get_param_grid(self, model_name):
-        """Get parameter grid for hyperparameter tuning"""
-        param_grids = {
-            'random_forest': {
-                'n_estimators': [100, 200],
-                'max_depth': [10, 20, None],
-                'min_samples_split': [2, 5]
-            },
-            'gradient_boosting': {
-                'n_estimators': [100, 200],
-                'learning_rate': [0.01, 0.1],
-                'max_depth': [3, 5]
-            },
-            'svm': {
-                'C': [0.1, 1, 10],
-                'kernel': ['rbf', 'linear']
-            },
-            'logistic_regression': {
-                'C': [0.1, 1, 10],
-                'penalty': ['l1', 'l2'],
-                'solver': ['liblinear']
-            }
-        }
-        return param_grids.get(model_name, {})
+    """Classe responsável pelo treino, avaliação e serialização do modelo."""
+    def __init__(self, estimator: BaseEstimator):
+        """
+        Inicializa o ModelTrainer com um estimator scikit-learn.
+        Args:
+            estimator (BaseEstimator): Estimador (modelo) do scikit-learn.
+        """
+        self.estimator = estimator
+        self.trained = False
     
-    def train_with_hyperparameter_tuning(self, X_train, y_train):
-        """Train models with hyperparameter optimization"""
-        logger.info("Starting model training with hyperparameter tuning...")
-        
-        best_models = {}
-        
-        for name, model in self.models.items():
-            logger.info(f"Training {name}...")
-            
-            # Get parameter grid
-            param_grid = self.get_param_grid(name)
-            
-            if param_grid:
-                # Grid search with cross-validation
-                grid_search = GridSearchCV(
-                    model, param_grid, cv=3, 
-                    scoring='accuracy', n_jobs=-1,
-                    verbose=0
-                )
-                
-                grid_search.fit(X_train, y_train)
-                best_model = grid_search.best_estimator_
-                best_score = grid_search.best_score_
-                best_params = grid_search.best_params_
-            else:
-                # Train with default parameters
-                model.fit(X_train, y_train)
-                best_model = model
-                best_score = cross_val_score(model, X_train, y_train, cv=3).mean()
-                best_params = {}
-            
-            best_models[name] = best_model
-            
-            # Log to MLflow
-            try:
-                with mlflow.start_run(run_name=f"{name}_training"):
-                    mlflow.log_params(best_params)
-                    mlflow.log_metric("cv_score", best_score)
-                    mlflow.sklearn.log_model(best_model, name)
-            except Exception as e:
-                logger.warning(f"MLflow logging failed for {name}: {str(e)}")
-            
-            logger.info(f"{name} - CV Score: {best_score:.4f}")
-        
-        return best_models
+    def fit(self, X, y) -> BaseEstimator:
+        """
+        Ajusta o modelo aos dados de treino.
+        Args:
+            X (array-like): Features de entrada.
+            y (array-like): Target.
+        Returns:
+            BaseEstimator: Modelo ajustado.
+        """
+        self.estimator.fit(X, y)
+        self.trained = True
+        return self.estimator
     
-    def train_single_model(self, model_name, X_train, y_train, params=None):
-        """Train a single model with given parameters"""
-        if model_name not in self.models:
-            raise ValueError(f"Unknown model: {model_name}")
-        
-        model = self.models[model_name]
-        
-        if params:
-            model.set_params(**params)
-        
-        model.fit(X_train, y_train)
-        return model
+    def score(self, X, y) -> float:
+        """
+        Calcula o score do modelo.
+        Args:
+            X (array-like): Features de entrada.
+            y (array-like): Target.
+        Returns:
+            float: Score do modelo.
+        """
+        if not self.trained:
+            raise ValueError('Modelo não treinado.')
+        return self.estimator.score(X, y)
+    
+    def save_model(self, path: str) -> None:
+        """
+        Salva o modelo treinado em disco (formato joblib).
+        Args:
+            path (str): Caminho para salvar o modelo.
+        """
+        if not self.trained:
+            raise ValueError('Modelo não treinado.')
+        joblib.dump(self.estimator, path)
 
+if __name__ == '__main__':
+    from sklearn.linear_model import LogisticRegression
+    import numpy as np
+    X = np.random.rand(10,2)
+    y = (X[:,0] + X[:,1] > 1).astype(int)
+    trainer = ModelTrainer(LogisticRegression())
+    trainer.fit(X, y)
+    print('Score:', trainer.score(X, y))
+    trainer.save_model('model.joblib')

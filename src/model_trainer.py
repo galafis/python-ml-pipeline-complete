@@ -46,7 +46,7 @@ class ModelTrainer:
             float: Score do modelo.
         """
         if not self.trained:
-            raise ValueError('Modelo não treinado.')
+            raise ValueError("Modelo não treinado.")
         return self.estimator.score(X, y)
 
     def save_model(self, path: str) -> None:
@@ -57,11 +57,11 @@ class ModelTrainer:
             path (str): Caminho para salvar o modelo.
         """
         if not self.trained:
-            raise ValueError('Modelo não treinado.')
+            raise ValueError("Modelo não treinado.")
         joblib.dump(self.estimator, path)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     from sklearn.linear_model import LogisticRegression
     import numpy as np
 
@@ -70,5 +70,5 @@ if __name__ == '__main__':
 
     trainer = ModelTrainer(LogisticRegression())
     trainer.fit(X, y)
-    print('Score:', trainer.score(X, y))
-    trainer.save_model('model.joblib')
+    print("Score:", trainer.score(X, y))
+    trainer.save_model("model.joblib")

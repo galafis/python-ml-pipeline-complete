@@ -2,6 +2,7 @@
 -----------
 Pipeline completo integrando ingestão, processamento, treino, avaliação e serialização.
 """
+
 from src.data_loader import DataLoader
 from src.feature_engineering import FeatureEngineer
 from src.model_trainer import ModelTrainer
@@ -45,7 +46,7 @@ class MLPipeline:
         self.trainer.save_model(model_path)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     from sklearn.linear_model import LogisticRegression
     import numpy as np
 
@@ -64,7 +65,7 @@ if __name__ == '__main__':
 
     # Avalia
     metrics = pipeline.evaluate_model(data_proc, y)
-    print('Avaliação:', metrics)
+    print("Avaliação:", metrics)
 
     # Salva artefatos
-    pipeline.save_artifacts('modelo.joblib')
+    pipeline.save_artifacts("modelo.joblib")

@@ -1,12 +1,9 @@
-"""
-feature_engineering.py
+"""feature_engineering.py
 ----------------------
 Módulo de engenharia de features do pipeline ML.
 Contém classe FeatureEngineer para transformação padronizada dos dados.
 """
-
 import pandas as pd
-import numpy as np
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.compose import ColumnTransformer
 from sklearn.base import BaseEstimator, TransformerMixin
@@ -15,7 +12,6 @@ from sklearn.base import BaseEstimator, TransformerMixin
 class FeatureEngineer(BaseEstimator, TransformerMixin):
     """
     Classe para engenharia de features e transformação dos dados.
-
     Implementa métodos padronizados para detecção automática de tipos de colunas,
     aplicação de transformações apropriadas (one-hot encoding para categóricas,
     standardização para numéricas) seguindo boas práticas do scikit-learn.
@@ -70,7 +66,6 @@ class FeatureEngineer(BaseEstimator, TransformerMixin):
             list: Lista de nomes das colunas categóricas.
         """
         categorical_cols = []
-
         for col in X.columns:
             if X[col].dtype in ['object', 'category', 'bool', 'string']:
                 categorical_cols.append(col)
@@ -150,7 +145,6 @@ class FeatureEngineer(BaseEstimator, TransformerMixin):
                 transformers=transformers,
                 remainder='passthrough'
             )
-
             # Ajustar o preprocessador
             self.preprocessor.fit(X)
 

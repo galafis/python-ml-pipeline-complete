@@ -2,7 +2,6 @@
 FastAPI Application for ML Model Serving
 RESTful API for model predictions and information
 """
-
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import numpy as np
@@ -27,20 +26,17 @@ model_components = None
 
 class PredictionRequest(BaseModel):
     """Schema for prediction input data"""
-
     data: List[List[float]]  # Assume tabular matrix input
 
 
 class PredictionResponse(BaseModel):
     """Schema for prediction response"""
-
     prediction: List[Any]
     status: str = "success"
 
 
 class ModelInfo(BaseModel):
     """Schema for model information"""
-
     model_loaded: bool
     model_type: str = "unknown"
     version: str
@@ -110,40 +106,29 @@ async def predict(request: PredictionRequest):
             status_code=500,
             detail="Model not available - check server logs for loading errors",
         )
-
     try:
         # Convert input data to numpy array
         X = np.array(request.data)
-
         # Validate input shape
         if X.ndim != 2:
             raise ValueError("Input data must be a 2D array (matrix)")
-
         # Log prediction request
         logger.info(f"Processing prediction request with shape: {X.shape}")
-
         # Make prediction
         predictions = model_components.predict(X)
-
         # Convert predictions to list for JSON serialization
         pred_list = predictions.tolist()
-
-        logger.info(
-            f"Prediction completed successfully: {len(pred_list)} predictions"
-        )
-
+        
+        logger.info(f"Prediction completed successfully: {len(pred_list)} predictions")
         return PredictionResponse(prediction=pred_list, status="success")
-
+    
     except ValueError as ve:
         logger.error(f"Validation error: {ve}")
-        raise HTTPException(
-            status_code=400, detail=f"Invalid input data: {str(ve)}"
-        )
+        raise HTTPException(status_code=400, detail=f"Invalid input data: {str(ve)}")
+    
     except Exception as exc:
         logger.error(f"Prediction error: {exc}")
-        raise HTTPException(
-            status_code=500, detail=f"Error making prediction: {str(exc)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Error making prediction: {str(exc)}")
 
 
 @app.post("/predict/batch")
@@ -168,12 +153,9 @@ async def reload_model():
             return {"message": "Model reload failed", "status": "error"}
     except Exception as e:
         logger.error(f"Error reloading model: {e}")
-        raise HTTPException(
-            status_code=500, detail=f"Error reloading model: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Error reloading model: {str(e)}")
 
 
 if __name__ == "__main__":
     import uvicorn
-
     uvicorn.run(app, host="0.0.0.0", port=8000, log_level="info")

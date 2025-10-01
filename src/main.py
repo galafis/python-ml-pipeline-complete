@@ -20,8 +20,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.svm import SVC
 
 # Adiciona o diretório src ao path para importações
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-from pipeline import MLPipeline  # noqa: E402
+from src.pipeline import MLPipeline
 
 
 def get_model(model_name: str, **kwargs) -> Any:

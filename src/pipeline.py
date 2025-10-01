@@ -8,6 +8,7 @@ from src.feature_engineering import FeatureEngineer
 from src.model_trainer import ModelTrainer
 from src.model_evaluator import ModelEvaluator
 from typing import Any, Optional
+import joblib
 
 
 class MLPipeline:
@@ -41,9 +42,10 @@ class MLPipeline:
         self.evaluator = ModelEvaluator(self.trainer.estimator)
         return self.evaluator.evaluate(X, y)
 
-    def save_artifacts(self, model_path: str):
-        """Salva o modelo treinado e os artefatos."""
-        self.trainer.save_model(model_path)
+    def save_artifacts(self, pipeline_path: str):
+        """Salva a instância completa do pipeline treinado."""
+        joblib.dump(self, pipeline_path)
+
 
 
 if __name__ == "__main__":

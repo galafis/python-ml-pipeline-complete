@@ -1,0 +1,15 @@
+graph TD
+    A[Início] --> B(Coleta de Dados)
+    B --> C{Pré-processamento de Dados}
+    C --> D[Engenharia de Features]
+    D --> E(Divisão Treino/Teste)
+    E --> F[Treinamento do Modelo]
+    F --> G{Avaliação do Modelo}
+    G --> H{Otimização do Modelo}
+    H -- Feedback --> F
+    G --> I[Serialização do Modelo]
+    I --> J(Implantação da API)
+    J --> K[Previsões em Tempo Real]
+    K --> L[Monitoramento]
+    L -- Feedback --> C
+    L -- Feedback --> H

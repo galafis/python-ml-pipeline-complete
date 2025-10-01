@@ -4,6 +4,7 @@ RESTful API for model predictions and information
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import numpy as np
+import pandas as pd
 import joblib
 import os
 from typing import List, Any
@@ -42,7 +43,7 @@ class ModelInfo(BaseModel):
 
 
 # Model loading configuration
-MODEL_PATH = os.getenv("MODEL_PATH", "modelo.joblib")
+MODEL_PATH = os.getenv("MODEL_PATH", "model.joblib")
 
 
 def load_model():
@@ -110,8 +111,8 @@ async def predict(request: PredictionRequest):
         )
 
     try:
-        # Convert input data to numpy array
-        X = np.array(request.data)
+        # Convert input data to pandas DataFrame
+        X = pd.DataFrame(request.data, columns=[f'feature{i+1}' for i in range(len(request.data[0]))])
 
         # Validate input shape
         if X.ndim != 2:
@@ -120,8 +121,12 @@ async def predict(request: PredictionRequest):
         # Log prediction request
         logger.info(f"Processing prediction request with shape: {X.shape}")
 
+        # Apply preprocessing
+        X_processed = model_components.feature_engineer.transform(X)
+
         # Make prediction
-        predictions = model_components.predict(X)
+        predictions = model_components.trainer.estimator.predict(X_processed)
+
 
         # Convert predictions to list for JSON serialization
         pred_list = predictions.tolist()
